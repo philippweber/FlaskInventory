@@ -1,0 +1,9 @@
+---
+- hosts: all
+  gather_facts: no
+  tasks:
+    - debug:
+        msg: "Creating host with {{memory}} RAM and {{threads}} CPU"
+        verbosity: 0
+      delegate_to: localhost
+

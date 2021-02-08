@@ -1,0 +1,4 @@
+---
+memory: 1048576 # in KiB
+threads: 1
+
