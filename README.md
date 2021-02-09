@@ -23,3 +23,14 @@ Does nothing, just print fake RAM / CPU variables.
 ansible-playbook -i Inventory/fakeInv Playbooks/fakePlay.yaml 
 ```
 
+## Start flask server
+```bash
+FLASK_ENV=development flask run -p 8080
+
+# Check server:
+curl -vH 'Content-Type: application/json' -X POST -d '{"RAM": "1GiB", "CPU": 1, "Name": "test1"}' 'localhost:8080/newhost'
+
+# Check for errors:
+python -m py_compile wsgi.py 
+```
+
