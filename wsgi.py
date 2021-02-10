@@ -1,5 +1,6 @@
-import os, sys, re, json, flask, ruamel.yaml
+import os, sys, subprocess, re, json, flask, ruamel.yaml
 #from flask import request, Response, send_file, stream_with_context
+#from subprocess import PIPE, Popen
 #try:
 #  from StringIO import StringIO
 #except ImportError:
@@ -65,6 +66,19 @@ def newHost():
         yaml.dump(hostVars, yamlFile)
     except Exception as e:
       returnJson = { "status": "Failed", "msg": "Cannot write to " + hostVarsFile + "\nException:\n" + repr(e) }
+      yield json.dumps(returnJson)
+      return
+    ansibleCommand = [ 'ansible-playbook', '-i', 'Inventory/fakeInv', '-l', hostname, 'Playbooks/fakePlay.yaml' ]
+    returnJson = { "status": "AnsibleExecution", "msg": "Executing " + ' '.join(ansibleCommand) }
+    yield json.dumps(returnJson)
+    try:
+      with subprocess.Popen(ansibleCommand, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as playbook:
+        returnJson['msg'] = 'STDOUT: ' + playbook.stdout.read()
+        yield json.dumps(returnJson)
+        returnJson['msg'] = 'STDERR: ' + playbook.stderr.read()
+        yield json.dumps(returnJson)
+    except Exception as e:
+      returnJson = { "status": "Failed", "msg": "Ansible execution failed with\nException:\n" + repr(e) }
       yield json.dumps(returnJson)
       return
     returnJson = { "status": "Completed", "msg": "Created new host " + hostname + " in " + groupname + " with " + str(threads) + " processors and " + str(memory) + " memory" }
