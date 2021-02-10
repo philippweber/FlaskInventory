@@ -29,12 +29,35 @@ def newHost():
     yaml.indent(mapping=2, sequence=4, offset=2)
     yaml.preserve_quotes = True
     yaml.boolean_representation = [ 'False', 'True' ]
+    returnJson = { "status": "AddingHost", "msg": "Adding host " + hostname + " to hosts file" }
+    yield json.dumps(returnJson)
+    hostsFile = 'Inventory/fakeInv/hosts.yaml'
+    try:
+      with open(hostsFile, 'r+') as fd:
+        hostsContent = fd.readlines()
+        if '[' + groupname + ']' in hostsContent[-1]:
+          hostsContent.append(hostname)
+        else:
+          for index, line in enumerate(hostsContent):
+            if '[' + groupname + ']' in line:
+              afterGroup = index + 1 
+            if hostname in line:
+              returnJson = { "status": "Failed", "msg": "Host " + hostname + " exists in " + hostsFile }
+              yield json.dumps(returnJson)
+              return
+        hostsContent.insert(afterGroup, hostname)
+        fd.seek(0)
+        fd.writelines(hostsContent)
+    except Exception as e:
+      returnJson = { "status": "Failed", "msg": "Cannot write to " + hostsFile + "\nException:\n" + repr(e) }
+      yield json.dumps(returnJson)
+      return
     hostVars = ruamel.yaml.comments.CommentedMap({ "threads": threads, "memory": memory })
     hostVars.ca.comment = [ None, [ ruamel.yaml.tokens.CommentToken('---\n', ruamel.yaml.error.CommentMark(0), None) ] ]
     yaml.dump(hostVars, sys.stdout)
     #print(os.path.dirname(os.path.realpath(__file__)))
     #print(os.getcwd())
-    hostVarsFile = './Inventory/fakeInv/host_vars/' + hostname + '.yaml'
+    hostVarsFile = 'Inventory/fakeInv/host_vars/' + hostname + '.yaml'
     returnJson = { "status": "FileCreation", "msg": "Creating host_vars in " + hostVarsFile }
     yield json.dumps(returnJson)
     try:
