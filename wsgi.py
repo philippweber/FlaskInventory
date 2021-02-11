@@ -46,7 +46,7 @@ def newHost():
               returnJson = { "status": "Failed", "msg": "Host " + hostname + " exists in " + hostsFile }
               yield json.dumps(returnJson)
               return
-        hostsContent.insert(afterGroup, hostname)
+        hostsContent.insert(afterGroup, hostname + "\n")
         fd.seek(0)
         fd.writelines(hostsContent)
     except Exception as e:
@@ -72,7 +72,8 @@ def newHost():
     returnJson = { "status": "AnsibleExecution", "msg": "Executing " + ' '.join(ansibleCommand) }
     yield json.dumps(returnJson)
     try:
-      with subprocess.Popen(ansibleCommand, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as playbook:
+      #with subprocess.Popen(ansibleCommand, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as playbook:
+      with subprocess.Popen(ansibleCommand, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True) as playbook:
         returnJson['msg'] = 'STDOUT: ' + playbook.stdout.read()
         yield json.dumps(returnJson)
         returnJson['msg'] = 'STDERR: ' + playbook.stderr.read()
